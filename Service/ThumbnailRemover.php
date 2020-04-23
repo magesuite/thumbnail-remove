@@ -3,7 +3,6 @@
 namespace MageSuite\ThumbnailRemove\Service;
 
 use Magento\Framework\App\ObjectManager;
-use Magento\Store\Api\StoreManagementInterface;
 
 class ThumbnailRemover
 {
@@ -33,6 +32,17 @@ class ThumbnailRemover
     protected $productFactory;
 
     /**
+     * @var \Magento\Catalog\Model\Product\Image\ParamsBuilder
+     */
+    protected $imageParamsBuilder;
+
+
+    /**
+     * @var \Magento\Catalog\Model\View\Asset\ImageFactory
+     */
+    protected $assetImageFactory;
+
+    /**
      * @var array
      */
     protected $data = [];
@@ -45,7 +55,9 @@ class ThumbnailRemover
         \Magento\Framework\View\ConfigInterface $viewConfig,
         \Magento\Theme\Model\ResourceModel\Theme\Collection $themeCollection,
         \Magento\Catalog\Helper\Image $imageHelper,
-        \Magento\Catalog\Model\ProductFactory $productFactory
+        \Magento\Catalog\Model\ProductFactory $productFactory,
+        \Magento\Catalog\Model\Product\Image\ParamsBuilder $imageParamsBuilder,
+        \Magento\Catalog\Model\View\Asset\ImageFactory $assetImageFactory
     )
     {
         $this->productRepository = $productRepository;
@@ -53,6 +65,8 @@ class ThumbnailRemover
         $this->themeCollection = $themeCollection;
         $this->imageHelper = $imageHelper;
         $this->productFactory = $productFactory;
+        $this->imageParamsBuilder = $imageParamsBuilder;
+        $this->assetImageFactory = $assetImageFactory;
     }
 
     /**
@@ -103,9 +117,8 @@ class ThumbnailRemover
         $fileName = sprintf('/%s/%s/%s', $name[0], $name[1], $name);
 
         foreach ($this->getData() as $imageData) {
-            $this->processImageData($product, $imageData, $fileName);
-            $imageUrl = $this->imageHelper->getUrl();
-            $imagePath = $this->getImageFilePath($imageUrl);
+            $assetImage = $this->getAssetImage($fileName, $imageData);
+            $imagePath = $this->getImageFilePath($assetImage->getUrl());
             $images[] = $imagePath;
         }
         return $images;
@@ -133,8 +146,8 @@ class ThumbnailRemover
         $galleryImages = $product->getMediaGalleryImages();
         foreach ($galleryImages as $image) {
             foreach ($this->getData() as $imageData) {
-                $this->processImageData($product, $imageData, $image->getFile());
-                $images[] = $this->imageHelper->getUrl();
+                $assetImage = $this->getAssetImage($image->getFile(), $imageData);
+                $images[] = $assetImage->getUrl();
             }
         }
         return $images;
@@ -166,40 +179,6 @@ class ThumbnailRemover
     }
 
     /**
-     * Process image data
-     *
-     * @param \Magento\Catalog\Model\Product $product
-     * @param array $imageData
-     * @param string $file
-     * @return $this
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
-     * @SuppressWarnings(PHPMD.NPathComplexity)
-     */
-    protected function processImageData(\Magento\Catalog\Model\Product $product, array $imageData, $file)
-    {
-        $this->imageHelper->init($product, $imageData['id'], $imageData);
-        $this->imageHelper->setImageFile($file);
-
-        if (isset($imageData['aspect_ratio'])) {
-            $this->imageHelper->keepAspectRatio($imageData['aspect_ratio']);
-        }
-        if (isset($imageData['frame'])) {
-            $this->imageHelper->keepFrame($imageData['frame']);
-        }
-        if (isset($imageData['transparency'])) {
-            $this->imageHelper->keepTransparency($imageData['transparency']);
-        }
-        if (isset($imageData['constrain'])) {
-            $this->imageHelper->constrainOnly($imageData['constrain']);
-        }
-        if (isset($imageData['background'])) {
-            $this->imageHelper->backgroundColor($imageData['background']);
-        }
-
-        return $this;
-    }
-
-    /**
      * @param $imageUrl
      * @return string
      */
@@ -210,5 +189,16 @@ class ThumbnailRemover
         $imagePath = sprintf('%s/pub/media/catalog/product/%s', BP, $results[0][1]);
 
         return $imagePath;
+    }
+
+    protected function getAssetImage($filename, $imageData)
+    {
+        $imageMiscParams = $this->imageParamsBuilder->build($imageData);
+        return $this->assetImageFactory->create(
+            [
+                'miscParams' => $imageMiscParams,
+                'filePath' => $filename,
+            ]
+        );
     }
 }
