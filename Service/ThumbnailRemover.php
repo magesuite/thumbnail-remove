@@ -96,9 +96,6 @@ class ThumbnailRemover
         $images = [];
 
         $product = $this->productRepository->get($sku, false, ObjectManager::getInstance()->get(\Magento\Store\Model\StoreManagerInterface::class)->getStore()->getId(), true);
-
-        $this->findImagesByProduct($product);
-
         foreach ($this->findImagesByProduct($product) as $imageUrl) {
             $imagePath = $this->getImageFilePath($imageUrl);
             $images[] = $imagePath;
@@ -113,7 +110,6 @@ class ThumbnailRemover
     public function findImagesByFileName($name)
     {
         $images = [];
-        $product = $this->productFactory->create();
         $fileName = sprintf('/%s/%s/%s', $name[0], $name[1], $name);
 
         foreach ($this->getData() as $imageData) {
