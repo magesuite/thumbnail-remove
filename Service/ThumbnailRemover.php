@@ -2,40 +2,36 @@
 
 namespace MageSuite\ThumbnailRemove\Service;
 
-use Magento\Framework\App\ObjectManager;
-
 class ThumbnailRemover
 {
+    const FILE_NAME_FORMAT = '/%s/%s/%s';
+
+    const IMAGE_PATH_FORMAT = '%s/pub/media/catalog/product/%s';
+
     /**
      * @var \Magento\Catalog\Api\ProductRepositoryInterface
      */
     protected $productRepository;
 
     /**
-     * @var ConfigInterface
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    protected $storeManager;
+
+    /**
+     * @var \Magento\Framework\View\ConfigInterface
      */
     protected $viewConfig;
 
     /**
-     * @var ThemeCollection
+     * @var \Magento\Theme\Model\ResourceModel\Theme\Collection
      */
     protected $themeCollection;
-
-    /**
-     * @var ImageHelper
-     */
-    protected $imageHelper;
-
-    /**
-     * @var ProductFactory $productFactory
-     */
-    protected $productFactory;
 
     /**
      * @var \Magento\Catalog\Model\Product\Image\ParamsBuilder
      */
     protected $imageParamsBuilder;
-
 
     /**
      * @var \Magento\Catalog\Model\View\Asset\ImageFactory
@@ -52,19 +48,16 @@ class ThumbnailRemover
      */
     public function __construct(
         \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\View\ConfigInterface $viewConfig,
         \Magento\Theme\Model\ResourceModel\Theme\Collection $themeCollection,
-        \Magento\Catalog\Helper\Image $imageHelper,
-        \Magento\Catalog\Model\ProductFactory $productFactory,
         \Magento\Catalog\Model\Product\Image\ParamsBuilder $imageParamsBuilder,
         \Magento\Catalog\Model\View\Asset\ImageFactory $assetImageFactory
-    )
-    {
+    ) {
         $this->productRepository = $productRepository;
+        $this->storeManager = $storeManager;
         $this->viewConfig = $viewConfig;
         $this->themeCollection = $themeCollection;
-        $this->imageHelper = $imageHelper;
-        $this->productFactory = $productFactory;
         $this->imageParamsBuilder = $imageParamsBuilder;
         $this->assetImageFactory = $assetImageFactory;
     }
@@ -95,11 +88,11 @@ class ThumbnailRemover
     {
         $images = [];
 
-        $product = $this->productRepository->get($sku, false, ObjectManager::getInstance()->get(\Magento\Store\Model\StoreManagerInterface::class)->getStore()->getId(), true);
+        $product = $this->productRepository->get($sku, false, $this->storeManager->getStore()->getId(), true);
         foreach ($this->findImagesByProduct($product) as $imageUrl) {
-            $imagePath = $this->getImageFilePath($imageUrl);
-            $images[] = $imagePath;
+            $images[] = $this->getImageFilePath($imageUrl);
         }
+
         return $images;
     }
 
@@ -110,13 +103,13 @@ class ThumbnailRemover
     public function findImagesByFileName($name)
     {
         $images = [];
-        $fileName = sprintf('/%s/%s/%s', $name[0], $name[1], $name);
+        $fileName = sprintf(self::FILE_NAME_FORMAT, $name[0], $name[1], $name);
 
         foreach ($this->getData() as $imageData) {
             $assetImage = $this->getAssetImage($fileName, $imageData);
-            $imagePath = $this->getImageFilePath($assetImage->getUrl());
-            $images[] = $imagePath;
+            $images[] = $this->getImageFilePath($assetImage->getUrl());
         }
+
         return $images;
     }
 
@@ -146,6 +139,7 @@ class ThumbnailRemover
                 $images[] = $assetImage->getUrl();
             }
         }
+
         return $images;
     }
 
@@ -167,10 +161,12 @@ class ThumbnailRemover
                 ]);
                 $images = $config->getMediaEntities('Magento_Catalog', \Magento\Catalog\Helper\Image::MEDIA_TYPE_CONFIG_NODE);
                 foreach ($images as $imageId => $imageData) {
-                    $this->data[$theme->getCode() . $imageId] = array_merge(['id' => $imageId], $imageData);
+                    $imageData['id'] = $imageId;
+                    $this->data[$theme->getCode() . $imageId] = $imageData;
                 }
             }
         }
+
         return $this->data;
     }
 
@@ -182,7 +178,7 @@ class ThumbnailRemover
     {
         preg_match_all('/catalog\/product\/(.*)/si', $imageUrl, $results, PREG_SET_ORDER);
 
-        $imagePath = sprintf('%s/pub/media/catalog/product/%s', BP, $results[0][1]);
+        $imagePath = sprintf(self::IMAGE_PATH_FORMAT, BP, $results[0][1]);
 
         return $imagePath;
     }
