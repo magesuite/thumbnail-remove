@@ -19,7 +19,7 @@ class ThumbnailRemoverTest extends \PHPUnit\Framework\TestCase
      */
     private $thumbnailRemover;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->objectManager = \Magento\TestFramework\ObjectManager::getInstance();
         $this->thumbnailRemover = $this->objectManager->create('MageSuite\ThumbnailRemove\Service\ThumbnailRemover');
