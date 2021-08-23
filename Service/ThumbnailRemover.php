@@ -83,6 +83,7 @@ class ThumbnailRemover
     /**
      * @param string $sku
      * @return string[]
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function findImagesByProductSku($sku)
     {
@@ -99,6 +100,7 @@ class ThumbnailRemover
     /**
      * @param string $name
      * @return string[]
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function findImagesByFileName($name)
     {
@@ -119,7 +121,7 @@ class ThumbnailRemover
     private function removeImages(array $images)
     {
         foreach ($images as $image) {
-            @unlink($image);
+            @unlink($image); //phpcs:ignore
         }
     }
 
@@ -128,6 +130,7 @@ class ThumbnailRemover
      *
      * @param \Magento\Catalog\Model\Product $product
      * @return string[]
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     private function findImagesByProduct(\Magento\Catalog\Model\Product $product)
     {

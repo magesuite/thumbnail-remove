@@ -12,12 +12,12 @@ class ThumbnailRemoverTest extends \PHPUnit\Framework\TestCase
     /**
      * @var \Magento\TestFramework\ObjectManager
      */
-    private $objectManager;
+    protected $objectManager;
 
     /**
      * @var MageSuite\ThumbnailRemove\Service\ThumbnailRemover $thumbnailRemover
      */
-    private $thumbnailRemover;
+    protected $thumbnailRemover;
 
     public function setUp(): void
     {
@@ -33,7 +33,7 @@ class ThumbnailRemoverTest extends \PHPUnit\Framework\TestCase
     public function testRemovingImagesByProductSku()
     {
         $images = $this->thumbnailRemover->findImagesByProductSku('simple');
-        $expected = BP . '/pub/media/catalog/product/thumbnail/bcbeafa6e881b8ccc17db2bcdf301c31/image/30x20/110/0/m/a/magento_image.jpg';
+        $expected = BP . '/pub/media/catalog/product/thumbnail/7e3caa6f01a6d83d364c562ba0c5d9f4ab80134e2336e76666b83b4a/image/13353/30x20/110/0/m/a/magento_image.jpg';
         $expected = str_replace('/', DIRECTORY_SEPARATOR, $expected);
         $this->assertContains($expected, $images);
     }
@@ -45,9 +45,8 @@ class ThumbnailRemoverTest extends \PHPUnit\Framework\TestCase
     public function testRemovingImagesByFileName()
     {
         $images = $this->thumbnailRemover->findImagesByFileName('magento_image.jpg');
-        $expected = BP . '/pub/media/catalog/product/thumbnail/bcbeafa6e881b8ccc17db2bcdf301c31/image/30x20/110/0/m/a/magento_image.jpg';
+        $expected = BP . '/pub/media/catalog/product/thumbnail/f8e59831fbf481c3182c35a778a72db57fe330c4431776c50974c469/image/0/30x20/110/0/m/a/magento_image.jpg';
         $expected = str_replace('/', DIRECTORY_SEPARATOR, $expected);
         $this->assertContains($expected, $images);
     }
-
 }
