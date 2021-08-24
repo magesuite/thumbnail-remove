@@ -2,7 +2,8 @@
 
 namespace MageSuite\ThumbnailRemove\Api;
 
-interface ThumbnailRemoveInterface {
+interface ThumbnailRemoveInterface
+{
 
     /**
      * @api
