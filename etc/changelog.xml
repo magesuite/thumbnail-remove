@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:MageSuite_Changelog:etc/changelog.xsd">
+    <module
+        id="MageSuite_ThumbnailRemove"
+        name="MageSuite_ThumbnailRemove">
+        <changelog>
+            <tag version="v1.0.5" date="2022-11-07">
+                <entry>
+                    <type>FIX</type>
+                    <overview>Fix for integration tests - new image token.</overview>
+                    <ticket_id>MGP-1038</ticket_id>
+                </entry>
+            </tag>
+        </changelog>
+    </module>
+</config>

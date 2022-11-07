@@ -33,7 +33,7 @@ class ThumbnailRemoverTest extends \PHPUnit\Framework\TestCase
     public function testRemovingImagesByProductSku()
     {
         $images = $this->thumbnailRemover->findImagesByProductSku('simple');
-        $expected = BP . '/pub/media/catalog/product/thumbnail/98793177f97e9b9f07ab027fd4ba4e85/image/30x20/110/80/m/a/magento_image.jpg';
+        $expected = BP . '/pub/media/catalog/product/thumbnail/7571b969db1d86871c869fa0cebe375e/image/30x20/110/80/m/a/magento_image.jpg';
         $expected = str_replace('/', DIRECTORY_SEPARATOR, $expected);
         $this->assertContains($expected, $images);
     }
@@ -45,7 +45,7 @@ class ThumbnailRemoverTest extends \PHPUnit\Framework\TestCase
     public function testRemovingImagesByFileName()
     {
         $images = $this->thumbnailRemover->findImagesByFileName('magento_image.jpg');
-        $expected = BP . '/pub/media/catalog/product/thumbnail/98793177f97e9b9f07ab027fd4ba4e85/image/30x20/110/80/m/a/magento_image.jpg';
+        $expected = BP . '/pub/media/catalog/product/thumbnail/7571b969db1d86871c869fa0cebe375e/image/30x20/110/80/m/a/magento_image.jpg';
         $expected = str_replace('/', DIRECTORY_SEPARATOR, $expected);
         $this->assertContains($expected, $images);
     }
