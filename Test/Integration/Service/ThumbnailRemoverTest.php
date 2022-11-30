@@ -2,11 +2,6 @@
 
 namespace MageSuite\ThumbnailRemove\Test\Integration\Service;
 
-/**
- * @magentoDbIsolation enabled
- * @magentoAppIsolation enabled
- */
-
 class ThumbnailRemoverTest extends \PHPUnit\Framework\TestCase
 {
     /**
@@ -15,39 +10,59 @@ class ThumbnailRemoverTest extends \PHPUnit\Framework\TestCase
     private $objectManager;
 
     /**
-     * @var MageSuite\ThumbnailRemove\Service\ThumbnailRemover $thumbnailRemover
+     * @var \MageSuite\ThumbnailRemove\Service\ThumbnailRemover $thumbnailRemover
      */
     private $thumbnailRemover;
 
     public function setUp(): void
     {
         $this->objectManager = \Magento\TestFramework\ObjectManager::getInstance();
-        $this->thumbnailRemover = $this->objectManager->create('MageSuite\ThumbnailRemove\Service\ThumbnailRemover');
+        $this->thumbnailRemover = $this->objectManager->create(\MageSuite\ThumbnailRemove\Service\ThumbnailRemover::class);
     }
 
     /**
      * @magentoDbIsolation enabled
      * @magentoAppIsolation enabled
+     * @magentoConfigFixture default/dev/lazy_resize/token_secret f8f9fb44b4d7c6fe7ecef7091d475170
+     * @magentoConfigFixture default/images/url_generation/include_image_file_size_in_url 1
      * @magentoDataFixture Magento/Catalog/_files/product_with_image.php
      */
     public function testRemovingImagesByProductSku()
     {
+        $this->expectNotToPerformAssertions();
+
         $images = $this->thumbnailRemover->findImagesByProductSku('simple');
-        $expected = BP . '/pub/media/catalog/product/thumbnail/7571b969db1d86871c869fa0cebe375e/image/30x20/110/80/m/a/magento_image.jpg';
-        $expected = str_replace('/', DIRECTORY_SEPARATOR, $expected);
-        $this->assertContains($expected, $images);
+        $expected = 'catalog/product/thumbnail/[a-zA-Z0-9]+/image/13353/30x20/110/80/m/a/magento_image.jpg';
+        $expected = str_replace('/', '\/', $expected);
+        $expected = '/' . $expected . '/si';
+        $this->assertContainsByRegex($expected, $images);
     }
 
     /**
      * @magentoDbIsolation enabled
      * @magentoAppIsolation enabled
+     * @magentoConfigFixture default/images/url_generation/include_image_file_size_in_url 1
+     * @magentoConfigFixture default/dev/lazy_resize/token_secret f8f9fb44b4d7c6fe7ecef7091d475170
      */
     public function testRemovingImagesByFileName()
     {
+        $this->expectNotToPerformAssertions();
+
         $images = $this->thumbnailRemover->findImagesByFileName('magento_image.jpg');
-        $expected = BP . '/pub/media/catalog/product/thumbnail/7571b969db1d86871c869fa0cebe375e/image/30x20/110/80/m/a/magento_image.jpg';
-        $expected = str_replace('/', DIRECTORY_SEPARATOR, $expected);
-        $this->assertContains($expected, $images);
+        $expected = 'catalog/product/thumbnail/[a-zA-Z0-9]+/image/[0-9]+/30x20/110/80/m/a/magento_image.jpg';
+        $expected = str_replace('/', '\/', $expected);
+        $expected = '/' . $expected . '/si';
+        $this->assertContainsByRegex($expected, $images);
+    }
+
+    protected function assertContainsByRegex($expected, $array) {
+        foreach($array as $element) {
+            if(preg_match($expected, $element)) {
+                return true;
+            }
+        }
+
+        $this->fail();
     }
 
 }
